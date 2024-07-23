@@ -16,13 +16,19 @@ Supported commands are:
 4- echo : print text after echo command to terminal
 5- help : print info about available commands
 6- exit : terminates program
+Etfadal>
+Etfadal> 
 Etfadal> echo omar
 omar
 Etfadal> cp -a omarShell.c .. a.c
 Etfadal> cp omarShell.c .. a.c
 ERROR: File exists
+Etfadal>
+Etfadal> 
 Etfadal> pwd
 /home/omar/Desktop/Task-2
+Etfadal>
+Etfadal>
 Etfadal> exit
 Farewell :(
 ```
