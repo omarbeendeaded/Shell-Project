@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "cmds.c"
+#include "cmds.h"
 
 #define STDIN  0
 #define STDOUT 1
