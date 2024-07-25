@@ -71,14 +71,21 @@ void cpy(size_t argc, char** argv)
 	strcpy(src, argv[1 + append]);
 	strcpy(trg, argv[2 + append]);
 
+	
+	// Check trg directory or file name
+	struct stat s;
+	int trgIsDir = 0;
+	if (!stat(trg, &s) &&  S_ISDIR(s.st_mode)) trgIsDir = 1;
+
 
 	// Changing file name if specified
 	if ((!append && argc == 4) || (append && argc == 5))
 	{
-		strcat(trg, "/");
+		if (trg[strlen(trg) - 1] != '/') strcat(trg, "/");
 		strcat(trg, argv[3 + append]);
 	}
-	else
+	// Use directory specified
+	else if (trgIsDir)
 	{
 		int fileStart = -1;
 		for (size_t i = 0; i < strlen(src); i++) if (src[i] == '/') fileStart = i;
@@ -158,13 +165,20 @@ void mv(size_t argc, char** argv)
 	strcpy(trg, argv[2 + force]);
 
 
+	// Check trg directory or file name
+	struct stat s;
+	int trgIsDir = 0;
+	if (!stat(trg, &s) &&  S_ISDIR(s.st_mode)) trgIsDir = 1;
+
+
 	// Changing file name if specified
 	if ((!force && argc == 4) || (force && argc == 5))
 	{
-		strcat(trg, "/");
+		if (trg[strlen(trg) - 1] != '/') strcat(trg, "/");
 		strcat(trg, argv[3 + force]);
 	}
-	else
+	// Use directory specified
+	else if (trgIsDir)
 	{
 		int fileStart = -1;
 		for (size_t i = 0; i < strlen(src); i++) if (src[i] == '/') fileStart = i;
