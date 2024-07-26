@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <stdio.h>
 
 #define STDOUT 1
 
@@ -23,7 +24,7 @@ void getpwd()
 
 
 // ---------- CMD: echo ---------
-void echo(const char *text, size_t argc) 
+void echo(const char *text, int argc) 
 {
 	if (argc > 1)
 	{
@@ -35,30 +36,14 @@ void echo(const char *text, size_t argc)
 
 
 // --------- CMD: cp ----------
-void cpy(size_t argc, char** argv)
+void cpy(int argc, char** argv)
 {
-
-	char append = 0;
-	char wrongOption = 0;
-	size_t opt;
-
 	// Get options
-	while ((opt = getopt(argc, argv, "a:")) != -1)
-	{
-		switch (opt)
-		{
-			case 'a':
-				append = 1;
-				break;
-			default:
-				wrongOption = 1;
-				break;		
-		}
-
-	}
+	char append = 0;
+	if (argc > 1 && strcmp(argv[1], "-a") == 0) append = 1;
 	
 	// Check correct usage
-	if ((!append && (argc !=  3 && argc !=  4)) || (append && (argc != 4 && argc != 5 )) || (append && strcmp(argv[1],"-a") != 0) || wrongOption)
+	if (argc !=  3 + append && argc !=  4 + append)
 	{
 		write(STDOUT, "Usage: cp [option] [source path] [target path] [file name]\n", 59);
 		return;
@@ -73,9 +58,9 @@ void cpy(size_t argc, char** argv)
 
 	
 	// Check trg directory or file name
-	struct stat s;
+	struct stat s1, s2;
 	int trgIsDir = 0;
-	if (!stat(trg, &s) &&  S_ISDIR(s.st_mode)) trgIsDir = 1;
+	if (!stat(trg, &s1) &&  S_ISDIR(s1.st_mode)) trgIsDir = 1;
 
 
 	// Changing file name if specified
@@ -88,7 +73,7 @@ void cpy(size_t argc, char** argv)
 	else if (trgIsDir)
 	{
 		int fileStart = -1;
-		for (size_t i = 0; i < strlen(src); i++) if (src[i] == '/') fileStart = i;
+		for (int i = 0; i < strlen(src); i++) if (src[i] == '/') fileStart = i;
 		
 		strcat(trg, "/");
 		strcat(trg, argv[1 + append] + fileStart + 1);
@@ -98,9 +83,7 @@ void cpy(size_t argc, char** argv)
 	int fd1 = open(src, O_RDONLY);
 	if (fd1 < 0)
        	{
-		write(STDOUT, "ERROR: ", 7);
-		write(STDOUT, strerror(errno), strlen(strerror(errno)));
-		write(STDOUT, "\n", 1);
+		perror("Source file");
 	       	return;
 	}
 
@@ -109,9 +92,16 @@ void cpy(size_t argc, char** argv)
 	int fd2 = open(trg, O_WRONLY|O_CREAT|(O_EXCL * !append)|(O_APPEND * append), S_IRWXU);
 	if (fd2 < 0)
 	{
-		write(STDOUT, "ERROR: ", 7);
-		write(STDOUT, strerror(errno), strlen(strerror(errno)));
-		write(STDOUT, "\n", 1);
+		perror("Target file");
+		return;
+	}
+
+	// In case of same file
+	fstat(fd1, &s1);
+	fstat(fd2, &s2);
+	if (s1.st_dev == s2.st_dev && s1.st_ino == s2.st_ino)
+	{
+		write(STDOUT, "ERROR: Cannot copy file into itself\n", 36);
 		return;
 	}
 	
@@ -129,29 +119,14 @@ void cpy(size_t argc, char** argv)
 
 
 // --------- CMD: mv ----------
-void mv(size_t argc, char** argv)
+void mv(int argc, char** argv)
 {
-	char force = 0;
-	char wrongOption = 0;
-	size_t opt;
-
 	// Get options
-	while ((opt = getopt(argc, argv, "f:")) != -1)
-	{
-		switch (opt)
-		{
-			case 'f':
-				force = 1;
-				break;
-			default:
-				wrongOption = 1;
-				break;		
-		}
-
-	}
+	int force = 0;
+	if (argc > 1 && strcmp(argv[1], "-f") == 0) force = 1;
 	
 	// Check correct usage
-	if ((!force && (argc !=  3 && argc !=  4)) || (force && (argc != 4 && argc != 5 )) || (force && strcmp(argv[1],"-f") != 0) || wrongOption)
+	if (argc !=  3 + force && argc !=  4 + force)
 	{
 		write(STDOUT, "Usage: cp [option] [source path] [target path] [file name]\n", 59);
 		return;
@@ -166,9 +141,9 @@ void mv(size_t argc, char** argv)
 
 
 	// Check trg directory or file name
-	struct stat s;
+	struct stat s1, s2;
 	int trgIsDir = 0;
-	if (!stat(trg, &s) &&  S_ISDIR(s.st_mode)) trgIsDir = 1;
+	if (!stat(trg, &s1) &&  S_ISDIR(s1.st_mode)) trgIsDir = 1;
 
 
 	// Changing file name if specified
@@ -181,7 +156,7 @@ void mv(size_t argc, char** argv)
 	else if (trgIsDir)
 	{
 		int fileStart = -1;
-		for (size_t i = 0; i < strlen(src); i++) if (src[i] == '/') fileStart = i;
+		for (int i = 0; i < strlen(src); i++) if (src[i] == '/') fileStart = i;
 		
 		strcat(trg, "/");
 		strcat(trg, argv[1 + force] + fileStart + 1);
@@ -191,9 +166,7 @@ void mv(size_t argc, char** argv)
 	int fd1 = open(src, O_RDONLY);
 	if (fd1 < 0)
        	{
-		write(STDOUT, "ERROR: ", 7);
-		write(STDOUT, strerror(errno), strlen(strerror(errno)));
-		write(STDOUT, "\n", 1);
+		perror("Source file");
 	       	return;
 	}
 
@@ -202,9 +175,7 @@ void mv(size_t argc, char** argv)
 	int fd2 = open(trg, O_WRONLY|O_CREAT|(O_EXCL * !force), S_IRWXU);
 	if (fd2 < 0)
 	{
-		write(STDOUT, "ERROR: ", 7);
-		write(STDOUT, strerror(errno), strlen(strerror(errno)));
-		write(STDOUT, "\n", 1);
+		perror("Target file");
 		return;
 	}
 
@@ -215,7 +186,9 @@ void mv(size_t argc, char** argv)
 	while ((count = read(fd1, buff, 200)) != 0) write(fd2, buff, count);
 
 	// Remove original file
-	unlink(src);
+	fstat(fd1, &s1);
+	fstat(fd2, &s2);
+	if (!(s1.st_dev == s2.st_dev && s1.st_ino == s2.st_ino)) unlink(src);
 
 	// CLose files
 	close(fd1);
@@ -231,15 +204,13 @@ void help()
 	int fd = open("help.txt", O_RDONLY);
 	if (fd < 0)
        	{
-		write(STDOUT, "ERROR: ", 7);
-		write(STDOUT, strerror(errno), strlen(strerror(errno)));
-		write(STDOUT, "\n", 1);
+		perror("Helper file");
 	       	return;
 	}
 	
 	// Print to STDOUT
 	char buff[200];
-	size_t count = 0;
+	int count = 0;
 	while ((count = read(fd, buff, 200)) != 0) write(STDOUT, buff, count);
 
 	

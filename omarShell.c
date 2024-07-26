@@ -11,18 +11,18 @@
 
 #define BUFF_SIZE 100
 
-size_t countArgs(const char *command);
-char** getArgs(const char *command, size_t argc);
+int countArgs(const char *command);
+char** getArgs(const char *command, int argc);
 
 int main(void)
 {
 	// Initialize shell
 	char command[BUFF_SIZE];
-	ssize_t readSize = 0;
+	int readSize = 0;
 	const char * shellMsg = "Etfadal> ";
 
 	char **argv;
-	size_t argc;
+	int argc;
 
 	while (1)
 	{
@@ -47,7 +47,7 @@ int main(void)
 
 
 		// Free up memory in argv
-		for (size_t i = 0; i < argc; i++) free(argv[i]);
+		for (int i = 0; i < argc; i++) free(argv[i]);
 		free(argv);
 	}
 
@@ -61,9 +61,9 @@ int main(void)
 
 
 // Returns number of space-separated arguments in string
-size_t countArgs(const char *command)
+int countArgs(const char *command)
 {
-	size_t count = 0;
+	int count = 0;
 	char cpy[BUFF_SIZE];
 	char *token;
 
@@ -83,7 +83,7 @@ size_t countArgs(const char *command)
 
 
 // Returns an array of space-separated arguements in string
-char** getArgs(const char *command, size_t argc)
+char** getArgs(const char *command, int argc)
 {
 
 	char** args = malloc(argc * sizeof(char*));
@@ -93,7 +93,7 @@ char** getArgs(const char *command, size_t argc)
 	strcpy(cpy, command);
 	
 	token = strtok(cpy, " ");
-	for (size_t i = 0; i < argc; i++)
+	for (int i = 0; i < argc; i++)
 	{
 		args[i] = strdup(token);
 		token = strtok(NULL, " ");

@@ -3,9 +3,9 @@
 
 // COMMANDS
 void getpwd ();
-void echo   (const char *command, size_t argc);
-void cpy    (size_t argc, char** argv);
-void mv     (size_t argc, char** argv);
+void echo   (const char *command, int argc);
+void cpy    (int argc, char** argv);
+void mv     (int argc, char** argv);
 void help   ();
 
 #endif
