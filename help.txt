@@ -1,8 +1,12 @@
-Supported commands are:
+Supported built-in commands are:
 
-1- cp   : copy file to another file
-2- mv   : move file to another directory
-3- pwd  : print current directory
-4- echo : print text after echo command to terminal
-5- help : print info about available commands
-6- exit : terminates program
+1-  mycp   : copy file to another file
+2-  mymv   : move file to another directory
+3-  mypwd  : print current directory
+4-  myecho : print text after echo command to terminal
+5-  myhelp : print info about available commands
+6-  exit   : terminates program
+7-  cd     : changes current working directory
+8-  type   : returns the type of the command
+9-  envir  : print environment variables
+10- phist  : print the last 10 processes with exit status

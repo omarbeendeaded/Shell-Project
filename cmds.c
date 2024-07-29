@@ -5,8 +5,115 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #define STDOUT 1
+
+#define BUFF_SIZE 200
+
+extern char** environ;
+
+
+///////// HELPER FUNCTIONS //////////
+
+// ---------- Run External Commands ----------
+void runExtern(char** argv, const char* path)
+{
+	execv(path, argv);
+	perror("exec");
+}
+
+// Returns number of space-separated arguments in string
+int countArgs(const char *command)
+{
+	int count = 0;
+	char cpy[BUFF_SIZE];
+	char *token;
+	char flag = 0;
+
+	strcpy(cpy, command);
+
+	token = strtok(cpy, " ");
+	while (token != NULL && token[0] != '\n')
+	{
+		flag = 0;
+		count++;
+		if (token[strlen(token) - 1] == '\\') count--, flag = 1; 
+		token = strtok(NULL, " ");
+	}
+
+	if (flag) count++;
+
+	return count;
+}
+
+
+// Returns an array of space-separated arguements in string
+char** getArgs(const char *command, int argc)
+{
+
+	char** args = malloc((argc + 1) * sizeof(char*));
+	char cpy[BUFF_SIZE];
+	char *token;
+
+	strcpy(cpy, command);
+	
+	token = strtok(cpy, " ");
+	for (int i = 0; i < argc; i++)
+	{
+		args[i] = strdup(token);
+		token = strtok(NULL, " ");
+
+		// Handling spaces in file names
+		if (args[i][strlen(args[i]) - 1] == '\\')
+		{	
+			args[i][strlen(args[i]) - 1] = ' ';
+			strcat(args[i], token);
+			token = strtok(NULL, " "); 
+		}
+	}
+	args[argc] = NULL;
+	
+	return args;
+
+}
+
+
+
+// Check external variable
+int checkExtern(const char* cmd, char* path)
+{
+	char buff[BUFF_SIZE];
+	int fd = open("/etc/environment", O_RDONLY);
+	int readSize = read(fd, buff, BUFF_SIZE);
+	buff[readSize - 2] = '\0';
+
+	char *token;
+	struct stat s;
+	token = strtok(buff, "\"");
+
+	while (1)
+	{
+		if ((token = strtok(NULL, ":")) == NULL ) break;
+		
+		strcpy(buff, token);
+		strcat(buff, "/");
+		strcat(buff, cmd);
+
+
+		if (stat(buff, &s) == 0) 
+		{
+			strcpy(path, buff);
+			return 1;
+		}
+	}
+	
+	return -1;
+}
+
+
+
+/////////// COMMANDS ///////////
 
 
 // ---------- CMD: pwd ----------
@@ -40,10 +147,22 @@ void cpy(int argc, char** argv)
 {
 	// Get options
 	char append = 0;
-	if (argc > 1 && strcmp(argv[1], "-a") == 0) append = 1;
+	int opt;
+	while ((opt = getopt(argc, argv, "a")) != -1)
+	{
+		switch (opt)
+		{
+			case 'a':
+				append = 1;
+				break;
+			default:
+				append = -1;
+				break;
+		}
+	}
 	
 	// Check correct usage
-	if (argc !=  3 + append && argc !=  4 + append)
+	if ((argc !=  3 + append && argc !=  4 + append) || append == -1)
 	{
 		write(STDOUT, "Usage: cp [option] [source path] [target path] [file name]\n", 59);
 		return;
@@ -216,6 +335,86 @@ void help()
 	
 	// Close file
 	close(fd);
+}
+
+
+
+// ---------- CMD: cd ----------
+void cd(int argc, char** argv)
+{
+	if (chdir(argv[1]) < 0) perror("cd");
+
+}
+
+
+// ---------- CMD: envir ----------
+void envir(char* var)
+{
+	int i = 0;
+	int loc = -1;
+
+	if (var == NULL)
+	{
+		while (environ[i] != NULL)
+		{
+			write(STDOUT, environ[i], strlen(environ[i]));
+			write(STDOUT, "\n", 1);
+			i++;
+		}
+	}
+	else
+	{
+		int found;
+		while (environ[i] != NULL)
+		{
+			int j = 0;
+			found = 1;
+			while (environ[i][j] != '=' && j < strlen(var))
+			{
+				if (environ[i][j] != var[j])
+				{
+					found = 0;
+					break;
+				}
+				j++;
+
+			}
+			
+			if (found && environ[i][j] == '=' && j == strlen(var)) 
+			{
+				write(STDOUT, environ[i], strlen(environ[i]));
+				write(STDOUT, "\n", 1);
+				break;
+			}
+			
+			i++;	
+		}
+		if (!found) write(STDOUT, "Not found.\n", 11);
+
+	}
+}
+
+// ---------- CMD: type ----------
+const char* COMMANDS[] = {"mycp", "mymv", "mypwd", "myecho", "myhelp", "exit", "cd", "type", "envir", "phist", NULL};
+void type(const char* cmd)
+{
+	if (cmd == NULL) write(STDOUT, "Specify command.\n", 17);
+	else
+	{
+		int i = 0;
+		while (COMMANDS[i] != NULL)
+		{
+			if (strcmp(COMMANDS[i], cmd) == 0) 
+			{
+				write(STDOUT, "Internal\n", 9);
+				return;
+			}
+			i++;
+		}
+		char buff[100];
+		if (checkExtern(cmd, buff) == 1) write(STDOUT, "External\n", 9);
+		else                             write(STDOUT, "Not supported\n", 14);
+	}
 }
 
 

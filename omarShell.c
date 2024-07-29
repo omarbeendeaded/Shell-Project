@@ -2,6 +2,10 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
+#include <fcntl.h>
 
 #include "cmds.h"
 
@@ -9,17 +13,14 @@
 #define STDOUT 1
 #define STDERR 2
 
-#define BUFF_SIZE 100
-
-int countArgs(const char *command);
-char** getArgs(const char *command, int argc);
+#define BUFF_SIZE 200
 
 int main(void)
 {
 	// Initialize shell
 	char command[BUFF_SIZE];
 	int readSize = 0;
-	const char * shellMsg = "Etfadal> ";
+	const char * shellMsg = ": Etfadal> ";
 
 	char **argv;
 	int argc;
@@ -27,6 +28,9 @@ int main(void)
 	while (1)
 	{
 		// Prompt & get input
+		getcwd(command, BUFF_SIZE);
+		write(STDOUT, command, strlen(command));
+
 		write(STDOUT, shellMsg, strlen(shellMsg));
 		readSize = read(STDIN, command, BUFF_SIZE);
 		command[readSize - 1] = '\0';
@@ -37,14 +41,27 @@ int main(void)
 		else continue;	
 
 		// Check commands
-		if (strcmp(argv[0], "pwd") == 0)       getpwd();
-		else if (strcmp(argv[0], "echo") == 0) echo(command + 5, argc);
-		else if (strcmp(argv[0], "cp") == 0)   cpy(argc, argv);
-		else if (strcmp(argv[0], "mv") == 0)   mv(argc, argv);
-		else if (strcmp(argv[0], "help") == 0) help();
-		else if (strcmp(argv[0], "exit") == 0) break;
-		else                                   write(STDOUT, "Command not found.\n", 19);
-
+		if      (strcmp(argv[0], "mypwd") == 0)   getpwd();
+		else if (strcmp(argv[0], "myecho") == 0)  echo(command + 7, argc);
+		else if (strcmp(argv[0], "mycp") == 0)    cpy(argc, argv);
+		else if (strcmp(argv[0], "mymv") == 0)    mv(argc, argv);
+		else if (strcmp(argv[0], "myhelp") == 0)  help();
+		else if (strcmp(argv[0], "cd") == 0)      cd(argc, argv);
+		else if (strcmp(argv[0], "envir") == 0)   envir(argv[1]);
+		else if (strcmp(argv[0], "type") == 0)    type(argv[1]);
+		else if (strcmp(argv[0], "exit") == 0)    break;
+		else if (checkExtern(argv[0], command) > 0)       
+	       	{	
+			int ret = fork();
+			if (ret > 0)
+			{
+				int st;
+				wait(&st);
+			}
+			else if (ret == 0) runExtern(argv, command);
+			else               perror("Fork");
+		}
+		else                                      write(STDOUT, "Command not found.\n", 19);
 
 		// Free up memory in argv
 		for (int i = 0; i < argc; i++) free(argv[i]);
@@ -57,54 +74,6 @@ int main(void)
 
 	return 0;
 }
-
-
-
-// Returns number of space-separated arguments in string
-int countArgs(const char *command)
-{
-	int count = 0;
-	char cpy[BUFF_SIZE];
-	char *token;
-
-	strcpy(cpy, command);
-
-	token = strtok(cpy, " ");
-	while (token != NULL && token[0] != '\n')
-	{
-		count++;
-		token = strtok(NULL, " ");
-	}
-
-	return count;
-}
-
-
-
-
-// Returns an array of space-separated arguements in string
-char** getArgs(const char *command, int argc)
-{
-
-	char** args = malloc(argc * sizeof(char*));
-	char cpy[BUFF_SIZE];
-	char *token;
-
-	strcpy(cpy, command);
-	
-	token = strtok(cpy, " ");
-	for (int i = 0; i < argc; i++)
-	{
-		args[i] = strdup(token);
-		token = strtok(NULL, " ");
-	}
-
-	
-	return args;
-
-}
-
-
 
 
 
