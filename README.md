@@ -1,13 +1,17 @@
 ## Description
-A simple shell program with 6 different commands available:
+A simple shell program with 10 internal commands available:
 
 ```
-1- cp   : copy file to another file
-2- mv   : move file to another directory
-3- pwd  : print current directory
-4- echo : print text after echo command to terminal
-5- help : print info about available commands
-6- exit : terminates program
+1-  mycp   : copy file to another file
+2-  mymv   : move file to another directory
+3-  mypwd  : print current directory
+4-  myecho : print text after echo command to terminal
+5-  myhelp : print info about available commands
+6-  exit   : terminates program
+7-  cd     : changes current working directory
+8-  type   : returns the type of the command
+9-  envir  : print environment variables
+10- phist  : print the last 10 processes with exit status
 ```
   
 ## Compilation Commands
@@ -19,32 +23,47 @@ $ gcc omarShell.c cmds.c -o shell
 ## Example Output
 ```
 omar@Ubuntu22:~/Desktop/Task-2$ ./shell
-Etfadal> help
-Supported commands are:
+/home/omar/Desktop/Task-2: Etfadal> ls
+cmds.c  cmds.h  help.txt  omarShell.c  README.md  shell
+/home/omar/Desktop/Task-2: Etfadal> 
+/home/omar/Desktop/Task-2: Etfadal> 
+/home/omar/Desktop/Task-2: Etfadal>  
+/home/omar/Desktop/Task-2: Etfadal> type omar
+Not supported
+/home/omar/Desktop/Task-2: Etfadal> type cat
+External
+/home/omar/Desktop/Task-2: Etfadal> mycp cmds.h a.txt
+/home/omar/Desktop/Task-2: Etfadal> ls
+a.txt  cmds.c  cmds.h  help.txt  omarShell.c  README.md  shell
+/home/omar/Desktop/Task-2: Etfadal> cat a.txt
+#ifndef CMDS_H_
+#define CMDS_H_
 
-1- cp   : copy file to another file
-2- mv   : move file to another directory
-3- pwd  : print current directory
-4- echo : print text after echo command to terminal
-5- help : print info about available commands
-6- exit : terminates program
-Etfadal> 
-Etfadal> pwd
-/home/omar/Desktop/Task-2
-Etfadal> 
-Etfadal> echo hello
-hello
-Etfadal> cp a.txt test
-Etfadal> cp a.txt test
-ERROR: File exists
-Etfadal> cp -a a.txt test
-Etfadal> 
-Etfadal> mv test/a.txt /home/omar/Desktop/Task-2
-ERROR: File exists
-Etfadal> mv test/a.txt /home/omar/Desktop/Task-2 b.txt
-Etfadal> 
-Etfadal> 
-Etfadal> exit
+// COMMANDS
+void getpwd      ();
+void echo        (const char *command, int argc);
+void cpy         (int argc, char** argv);
+void mv          (int argc, char** argv);
+void help        ();
+void cd          (int argc, char** argv);
+void runExtern   (char** argv, const char* path);
+void envir       (char* var);
+void type        (const char* cmd);
+
+// HELPER
+int    checkExtern  (const char* cmd, char* path);
+int    countArgs    (const char *command);
+int    checkExtern  (const char* cmd, char* path);
+char** getArgs      (const char *command, int argc);
+
+#endif
+/home/omar/Desktop/Task-2: Etfadal> envir PATH
+PATH=/home/omar/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin
+/home/omar/Desktop/Task-2: Etfadal> mkdir test
+/home/omar/Desktop/Task-2: Etfadal> ls
+a.txt  cmds.c  cmds.h  help.txt  omarShell.c  README.md  shell  test
+/home/omar/Desktop/Task-2: Etfadal> cd test
+/home/omar/Desktop/Task-2/test: Etfadal> exit
 Farewell :(
 omar@Ubuntu22:~/Desktop/Task-2$ 
 ```
