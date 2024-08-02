@@ -22,6 +22,11 @@ int main(void)
 	int readSize = 0;
 	const char * shellMsg = ": Etfadal> ";
 
+	// phist init
+	char hist[10][200];
+	int st[10];
+	int c = 0;
+
 	char **argv;
 	int argc;
 
@@ -49,14 +54,16 @@ int main(void)
 		else if (strcmp(argv[0], "cd") == 0)      cd(argc, argv);
 		else if (strcmp(argv[0], "envir") == 0)   envir(argv[1]);
 		else if (strcmp(argv[0], "type") == 0)    type(argv[1]);
+		else if (strcmp(argv[0], "phist") == 0)   phist(hist, st, &c);
 		else if (strcmp(argv[0], "exit") == 0)    break;
 		else if (checkExtern(argv[0], command) > 0)       
 	       	{	
 			int ret = fork();
 			if (ret > 0)
 			{
-				int st;
-				wait(&st);
+				int status;
+				wait(&status);
+				addphist(hist, st, argv[0], status, &c);
 			}
 			else if (ret == 0) runExtern(argv, command);
 			else               perror("Fork");

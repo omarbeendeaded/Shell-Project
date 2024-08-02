@@ -11,11 +11,13 @@ void cd          (int argc, char** argv);
 void runExtern   (char** argv, const char* path);
 void envir       (char* var);
 void type        (const char* cmd);
+void phist       (char hist[10][200], int st[10], int* c);
 
 // HELPER
 int    checkExtern  (const char* cmd, char* path);
 int    countArgs    (const char *command);
 int    checkExtern  (const char* cmd, char* path);
 char** getArgs      (const char *command, int argc);
+void   addphist     (char hist[10][200], int st[10], char* cmd, int status, int* c);
 
 #endif

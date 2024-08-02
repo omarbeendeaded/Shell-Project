@@ -112,6 +112,32 @@ int checkExtern(const char* cmd, char* path)
 }
 
 
+// Adds new commands to the list
+void addphist(char hist[10][200], int st[10], char* cmd, int status, int* c)
+{
+	// Adds entry to end of the list
+	if (*c < 10) 
+	{
+		strcpy(hist[*c], cmd);
+		st[*c] = WEXITSTATUS(status);
+		(*c)++;
+	}
+	// Replaces oldest entry with new one if list is full
+	else if (*c == 10)
+	{	
+		// Shift entries one space
+		for (int i = 0; i < 9; i++)
+		{
+			strcpy(hist[i], hist[i + 1]);
+			st[i] = st[i + 1];
+		}
+
+		strcpy(hist[9], cmd);
+		st[9] = WEXITSTATUS(status);
+	}
+}
+
+
 
 /////////// COMMANDS ///////////
 
@@ -296,6 +322,7 @@ void mv(int argc, char** argv)
 	{
 		perror("Target file");
 		return;
+
 	}
 
 
@@ -418,7 +445,16 @@ void type(const char* cmd)
 }
 
 
-
+// ---------- CMD: phist ----------
+void phist(char hist[10][200], int st[10], int* c)
+{
+	for (int i = 0; i < *c; i++)
+	{
+		write(STDOUT, hist[i], strlen(hist[i]));
+		write(STDOUT, " -- ", 4);
+		printf("%d\n", st[i]);
+	}
+}
 
 
 
