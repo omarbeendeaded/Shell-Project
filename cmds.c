@@ -347,7 +347,7 @@ void mv(int argc, char** argv)
 void help()
 {
 	// Open txt file containing info
-	int fd = open("help.txt", O_RDONLY);
+	int fd = open("helpers/help.txt", O_RDONLY);
 	if (fd < 0)
        	{
 		perror("Helper file");
