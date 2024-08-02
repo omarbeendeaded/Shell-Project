@@ -13,6 +13,7 @@ A simple shell program with 10 internal commands available:
 9-  envir  : print environment variables
 10- phist  : print the last 10 processes with exit status
 ```
+`Note:` Use `\ ` to indicate a space in your input
   
 ## Compilation Commands
 ```
