@@ -65,7 +65,7 @@ char** getArgs(const char *command, int argc)
 		token = strtok(NULL, " ");
 
 		// Handling spaces in file names
-		if (args[i][strlen(args[i]) - 1] == '\\')
+		if (args[i][strlen(args[i]) - 1] == '\\' && token != NULL)
 		{	
 			args[i][strlen(args[i]) - 1] = ' ';
 			strcat(args[i], token);
