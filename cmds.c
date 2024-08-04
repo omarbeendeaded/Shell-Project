@@ -24,7 +24,7 @@ void runExtern(char** argv, const char* path)
 }
 
 // Returns number of space-separated arguments in string
-int countArgs(const char *command)
+int countArgs(const char *command, const char* sep)
 {
 	int count = 0;
 	char cpy[BUFF_SIZE];
@@ -33,13 +33,13 @@ int countArgs(const char *command)
 
 	strcpy(cpy, command);
 
-	token = strtok(cpy, " ");
+	token = strtok(cpy, sep);
 	while (token != NULL && token[0] != '\n')
 	{
 		flag = 0;
 		count++;
 		if (token[strlen(token) - 1] == '\\') count--, flag = 1; 
-		token = strtok(NULL, " ");
+		token = strtok(NULL, sep);
 	}
 
 	if (flag) count++;
@@ -49,7 +49,7 @@ int countArgs(const char *command)
 
 
 // Returns an array of space-separated arguements in string
-char** getArgs(const char *command, int argc)
+char** getArgs(const char *command, int argc, const char* sep)
 {
 
 	char** args = malloc((argc + 1) * sizeof(char*));
@@ -58,18 +58,18 @@ char** getArgs(const char *command, int argc)
 
 	strcpy(cpy, command);
 	
-	token = strtok(cpy, " ");
+	token = strtok(cpy, sep);
 	for (int i = 0; i < argc; i++)
 	{
 		args[i] = strdup(token);
-		token = strtok(NULL, " ");
+		token = strtok(NULL, sep);
 
 		// Handling spaces in file names
 		if (args[i][strlen(args[i]) - 1] == '\\' && token != NULL)
 		{	
 			args[i][strlen(args[i]) - 1] = ' ';
 			strcat(args[i], token);
-			token = strtok(NULL, " "); 
+			token = strtok(NULL, sep); 
 		}
 	}
 	args[argc] = NULL;

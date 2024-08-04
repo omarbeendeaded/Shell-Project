@@ -15,9 +15,9 @@ void phist       (char hist[10][200], int st[10], int* c);
 
 // HELPER
 int    checkExtern  (const char* cmd, char* path);
-int    countArgs    (const char *command);
+int    countArgs    (const char *command, const char* sep);
 int    checkExtern  (const char* cmd, char* path);
-char** getArgs      (const char *command, int argc);
+char** getArgs      (const char *command, int argc, const char* sep);
 void   addphist     (char hist[10][200], int st[10], char* cmd, int status, int* c);
 
 #endif
