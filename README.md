@@ -1,17 +1,19 @@
 ## Description
-A simple shell program with 10 internal commands available:
+A simple shell program with 12 internal commands available:
 
 ```
-1-  mycp   : copy file to another file
-2-  mymv   : move file to another directory
-3-  mypwd  : print current directory
-4-  myecho : print text after echo command to terminal
-5-  myhelp : print info about available commands
-6-  exit   : terminates program
-7-  cd     : changes current working directory
-8-  type   : returns the type of the command
-9-  envir  : print environment variables
-10- phist  : print the last 10 processes with exit status
+1-  mycp     : copy file to another file
+2-  mymv     : move file to another directory
+3-  mypwd    : print current directory
+4-  myecho   : print text after echo command to terminal
+5-  myhelp   : print info about available commands
+6-  exit     : terminates program
+7-  cd       : changes current working directory
+8-  type     : returns the type of the command
+9-  envir    : print environment variables
+10- phist    : print the last 10 processes with exit status
+11- myfree   : print RAM info
+12- uptime   : print up and idle time of the system
 ```
 `Note:` Use `\ ` to indicate a space in your input
   
