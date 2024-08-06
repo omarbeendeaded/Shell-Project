@@ -10,3 +10,5 @@ Supported built-in commands are:
 8-  type   : returns the type of the command
 9-  envir  : print environment variables
 10- phist  : print the last 10 processes with exit status
+11- free   : print RAM info
+12- uptime : print up and idle time of the system
