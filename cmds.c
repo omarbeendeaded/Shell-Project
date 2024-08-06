@@ -422,7 +422,7 @@ void envir(char* var)
 }
 
 // ---------- CMD: type ----------
-const char* COMMANDS[] = {"mycp", "mymv", "mypwd", "myecho", "myhelp", "exit", "cd", "type", "envir", "phist", NULL};
+const char* COMMANDS[] = {"mycp", "mymv", "mypwd", "myecho", "myhelp", "exit", "cd", "type", "envir", "phist", "myfree", "uptime", NULL};
 void type(const char* cmd)
 {
 	if (cmd == NULL) write(STDOUT, "Specify command.\n", 17);
@@ -457,9 +457,119 @@ void phist(char hist[10][200], int st[10], int* c)
 }
 
 
+// --------- CMD: free --------
+void myfree()
+{
+	int inds[100] = {0};
+	int countInds = 0;
+	int totalRead = 0;
+	int readSize;
+	int fd = open("/proc/meminfo", O_RDONLY);
+
+	char buff[200];
+	
+	// Get offset of each line in the file
+	while ((readSize = read(fd, buff, 200)) != 0)
+	{
+		for (int i = 0; i < readSize; i++)
+		{
+			if (buff[i] == '\n')
+			{
+				inds[countInds] = totalRead + i;
+				countInds++;
+			}
+		}
+
+		totalRead += readSize;
+	}
+
+	
+
+	// Extract required data
+	char nums[6][100];
+	lseek(fd, 0, SEEK_SET);
+	
+	readSize = read(fd, buff, inds[0]);
+	for (int i = 1; i < countInds; i++)
+	{
+		buff[readSize] = '\0';
+
+		// Check for needed data
+		int found = -1;
+		if      (strncmp(buff, "MemTotal", 8) == 0)       found = 0;
+		else if (strncmp(buff, "MemFree", 7) == 0)        found = 1;
+		else if (strncmp(buff, "Buffers", 7) == 0)        found = 2;
+		else if (strncmp(buff, "Cached", 6) == 0)         found = 3;
+		else if (strncmp(buff, "SwapTotal", 9) == 0)      found = 4;
+		else if (strncmp(buff, "SwapFree", 8) == 0)       found = 5;
+		else if (strncmp(buff, "SReclaimable", 12) == 0)  found = 6;
+		
+		// Extract number
+		if (found > -1)
+		{
+			int numStart = -1;
+			for (int j = 0; j < readSize; j++)
+			{
+				if (numStart == -1 && buff[j] >= '0' && buff[j] <= '9') numStart = j;
+				if (numStart > -1 && buff[j] == ' ') buff[j] = '\0';
+			}
+			strcpy(nums[found], buff + numStart);
+		}
+		memset(buff, 0, sizeof(buff));
+
+		// Go to next line
+		lseek(fd, inds[i - 1] + 1, SEEK_SET);
+		readSize = read(fd, buff, inds[i] - inds[i - 1]);
+	}
 
 
+	// Printing output
+	int MemTotal = atoi(nums[0]);
+	int MemFree  = atoi(nums[1]);
+	int MemUsed  = MemTotal - (MemFree + atoi(nums[2]) + atoi(nums[3]) + atoi(nums[6]));
+	
+	int SwapTotal = atoi(nums[4]);
+	int SwapFree  = atoi(nums[5]);
+	int SwapUsed  = SwapTotal - SwapFree;
 
+	printf("Memory\n");
+	printf(" Free: \t%d\n", MemFree);
+	printf(" Used: \t%d\n", MemUsed);
+	printf(" Total:\t%d\n", MemTotal);
+
+	printf("\nSwap\n");
+	printf(" Free: \t%d\n", SwapFree);
+	printf(" Used: \t%d\n", SwapUsed);
+	printf(" Total:\t%d\n", SwapTotal);
+}
+
+
+// --------- CMD: uptime ----------
+void uptime()
+{
+	char buff[200];
+	int fd = open("/proc/uptime", O_RDONLY);
+	int readSize = read(fd, buff, 200);
+	buff[readSize] = '\0';
+
+	char* token;
+	token = strtok(buff, " ");
+
+	int up = atoi(token);
+	int h = up / 3600;
+	int m = (up - (h * 3600)) / 60;
+	int s = up - (h * 3600) - (m * 60);
+	printf("Uptime: %d:%02d:%02d\n", h, m, s);
+	
+	token = strtok(NULL, " ");
+
+	up = atoi(token);
+	h = up / 3600;
+	m = (up - (h * 3600)) / 60;
+	s = up - (h * 3600) - (m * 60);
+	printf("Idle: %d:%02d:%02d\n", h, m, s);
+
+}
 
 
 

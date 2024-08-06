@@ -12,6 +12,8 @@ void runExtern   (char** argv, const char* path);
 void envir       (char* var);
 void type        (const char* cmd);
 void phist       (char hist[10][200], int st[10], int* c);
+void myfree      ();
+void uptime      ();
 
 // HELPER
 int    checkExtern  (const char* cmd, char* path);

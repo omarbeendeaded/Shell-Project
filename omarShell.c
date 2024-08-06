@@ -64,7 +64,7 @@ int main(void)
 			       	break;
 			}	
 			
-			// Close open pipes and open new pipe
+			// Close open pipe and open new pipe
 			if (numPipes > 1)
 			{
 				if (i == 0)
@@ -101,6 +101,67 @@ int main(void)
 			}
 			else if (ret == 0) 
 			{
+				// I/O redirection
+				int firstRedir = -1;
+
+				for (int j = 0; j < argc; j++)
+				{	
+					// STDIN
+					if (strcmp(argv[j], "<") == 0 && j < argc - 1)
+					{	
+						if (firstRedir == -1) firstRedir = j;
+
+						int fd = open(argv[j + 1], O_RDONLY, S_IRWXU);
+						if (fd < 0)
+						{
+							perror("Open");
+							exit(3);
+						}
+						dup2(fd, STDIN);
+						close(fd);
+					}
+
+					// STDOUT
+					if (strcmp(argv[j], ">") == 0 && j < argc - 1)
+					{
+						if (firstRedir == -1) firstRedir = j;
+
+						int fd = open(argv[j + 1], O_RDWR | O_CREAT, S_IRWXU);
+						if (fd < 0)
+						{
+							perror("Open");
+							exit(3);
+						}
+						dup2(fd, STDOUT);
+						close(fd);
+					}
+
+					// STDERR
+					if (strcmp(argv[j], "2>") == 0 && j < argc - 1)
+					{
+						if (firstRedir == -1) firstRedir = j;
+
+						int fd = open(argv[j + 1], O_RDWR | O_CREAT, S_IRWXU);
+						if (fd < 0)
+						{
+							perror("Open");
+							exit(3);
+						}
+						dup2(fd, STDERR);
+						close(fd);
+					}
+					
+
+				}
+
+				// Ignore the redirection arguments
+				if (firstRedir != -1)
+				{
+					argc = firstRedir;
+					argv[firstRedir] = NULL;
+				}
+
+
 				// Alternate between pipes
 				if (numPipes > 1)
 				{
@@ -129,6 +190,7 @@ int main(void)
 					}
 				}
 
+
 				// Check commands
 				if      (strcmp(argv[0], "mypwd") == 0)     getpwd();
 				else if (strcmp(argv[0], "myecho") == 0)    echo(command + 7, argc);
@@ -139,8 +201,10 @@ int main(void)
 				else if (strcmp(argv[0], "envir") == 0)     envir(argv[1]);
 				else if (strcmp(argv[0], "type") == 0)      type(argv[1]);
 				else if (strcmp(argv[0], "phist") == 0)     phist(hist, st, &c);
+				else if (strcmp(argv[0], "myfree") == 0)    myfree();
+				else if (strcmp(argv[0], "uptime") == 0)    uptime();
 				else if (checkExtern(argv[0], command) > 0) runExtern(argv, command);
-				else                                        write(STDOUT, "Command not found.\n", 19), exit(1);
+				else                                        write(STDERR, "Command not found.\n", 19), exit(1);
 				
 				exit(0);
 			}
