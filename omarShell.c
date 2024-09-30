@@ -57,11 +57,16 @@ int main(void)
 			if (argc > 0) argv = getArgs(pipes[i], argc, " ");
 			else break;
 			
-			// Check for exit before fork
+			// Check for exit & cd before fork
 			if (strcmp(argv[0], "exit") == 0)
 			{
 				isExit = 1;
 			       	break;
+			}
+			else if (strcmp(argv[0], "cd") == 0) 
+			{
+			       cd(argc, argv);
+			       break;
 			}	
 			
 			// Close open pipe and open new pipe
@@ -197,7 +202,6 @@ int main(void)
 				else if (strcmp(argv[0], "mycp") == 0)      cpy(argc, argv);
 				else if (strcmp(argv[0], "mymv") == 0)      mv(argc, argv);
 				else if (strcmp(argv[0], "myhelp") == 0)    help();
-				else if (strcmp(argv[0], "cd") == 0)        cd(argc, argv);
 				else if (strcmp(argv[0], "envir") == 0)     envir(argv[1]);
 				else if (strcmp(argv[0], "type") == 0)      type(argv[1]);
 				else if (strcmp(argv[0], "phist") == 0)     phist(hist, st, &c);
